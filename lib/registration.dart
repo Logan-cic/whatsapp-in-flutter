@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:whatsapp/Home.dart';
+import 'package:whatsapp/model/user.dart';
+import '';
 
 class Registration extends StatefulWidget {
   const Registration({super.key});
@@ -26,7 +30,12 @@ class _RegistrationState extends State<Registration> {
           setState(() {
             _errorMessage = " ";
           });
-          _userRegistration();
+
+          Userdata user = Userdata();
+          user.name = name;
+          user.email = email;
+          user.password = password;
+          _userRegistrationInFirebase(user);
         } else {
           setState(() {
             _errorMessage = "Enter a valid password";
@@ -44,7 +53,21 @@ class _RegistrationState extends State<Registration> {
     }
   }
 
-  _userRegistration() {}
+  _userRegistrationInFirebase(Userdata user) {
+    FirebaseAuth _auth = FirebaseAuth.instance;
+    _auth
+        .createUserWithEmailAndPassword(
+            email: user.email, password: user.password)
+        .then(((firebaseUser) {
+      Navigator.push(context, MaterialPageRoute(builder: ((context) => const Home())));
+    })).catchError((error) {
+      print("error app:" + error.toString());
+      setState(() {
+        _errorMessage =
+            'Error registering user, check the fields and try again';
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
