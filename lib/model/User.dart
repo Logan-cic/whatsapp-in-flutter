@@ -1,5 +1,5 @@
 class Userdata {
-  
+
   String _name = '';
   String _email = '';
   String _password = '';

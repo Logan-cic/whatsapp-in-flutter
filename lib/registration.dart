@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:whatsapp/Home.dart';
@@ -53,15 +54,17 @@ class _RegistrationState extends State<Registration> {
     }
   }
 
-  _userRegistrationInFirebase(Userdata user) {
+  _userRegistrationInFirebase(Userdata user) async {
+    await Firebase.initializeApp();
     FirebaseAuth _auth = FirebaseAuth.instance;
     _auth
         .createUserWithEmailAndPassword(
             email: user.email, password: user.password)
         .then(((firebaseUser) {
-      Navigator.push(context, MaterialPageRoute(builder: ((context) => const Home())));
+      Navigator.push(
+          context, MaterialPageRoute(builder: ((context) => const Home())));
     })).catchError((error) {
-      print("error app:" + error.toString());
+      //print("error app:" + error.toString());
       setState(() {
         _errorMessage =
             'Error registering user, check the fields and try again';

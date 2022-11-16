@@ -1,7 +1,11 @@
 import 'dart:io';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp/registration.dart';
+
+import 'Home.dart';
+import 'model/User.dart';
 
 class Login extends StatefulWidget {
   const Login({super.key});
@@ -11,6 +15,69 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  TextEditingController _controllerEmail = TextEditingController();
+  TextEditingController _controllerPassword = TextEditingController();
+  String _errorMessage = " ";
+
+  _authenticationLogin() {
+    //retrieve the fields
+    String email = _controllerEmail.text;
+    String password = _controllerPassword.text;
+
+    if (email.isNotEmpty && email.contains("@")) {
+      if (password.isNotEmpty) {
+        setState(() {
+          _errorMessage = " ";
+        });
+
+        Userdata user = Userdata();
+        user.email = email;
+        user.password = password;
+        _loginUser(user);
+      } else {
+        setState(() {
+          _errorMessage = "Enter a valid password";
+        });
+      }
+    } else {
+      setState(() {
+        _errorMessage = "Enter a valid email";
+      });
+    }
+  }
+
+  _loginUser(Userdata user) async {
+    await Firebase.initializeApp();
+    FirebaseAuth _auth = FirebaseAuth.instance;
+    _auth
+        .signInWithEmailAndPassword(email: user.email, password: user.password)
+        .then((firebaseUser) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: ((context) => const Home())));
+    }).catchError((error) {
+      setState(() {
+        _errorMessage = 'Error authenticating user, check email and password.';
+      });
+    });
+  }
+
+  Future _checkIfTheUserIsLoggedIn() async {
+    Firebase.initializeApp();
+    FirebaseAuth auth = FirebaseAuth.instance;
+    //auth.signOut();
+    final User? loggedInUser = await auth.currentUser;
+    if (loggedInUser != null) {
+      Navigator.push(
+          context, MaterialPageRoute(builder: ((context) => const Home())));
+    }
+  }
+
+  @override
+  void initState() {
+    _checkIfTheUserIsLoggedIn();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,6 +97,7 @@ class _LoginState extends State<Login> {
                 Padding(
                   padding: EdgeInsets.only(bottom: 8),
                   child: TextField(
+                    controller: _controllerEmail,
                     autofocus: true,
                     keyboardType: TextInputType.emailAddress,
                     style: TextStyle(fontSize: 20),
@@ -43,6 +111,8 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 TextField(
+                  controller: _controllerPassword,
+                  obscureText: true,
                   keyboardType: TextInputType.text,
                   style: TextStyle(fontSize: 20),
                   decoration: InputDecoration(
@@ -65,7 +135,9 @@ class _LoginState extends State<Login> {
                         "Login",
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      onPressed: (() {}),
+                      onPressed: (() {
+                        _authenticationLogin();
+                      }),
                     )),
                 Center(
                   child: GestureDetector(
@@ -79,6 +151,15 @@ class _LoginState extends State<Login> {
                           MaterialPageRoute(
                               builder: ((context) => const Registration())));
                     }),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 16),
+                  child: Center(
+                    child: Text(
+                      _errorMessage,
+                      style: const TextStyle(color: Colors.red, fontSize: 20),
+                    ),
                   ),
                 )
               ],
