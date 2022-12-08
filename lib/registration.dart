@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -61,7 +62,10 @@ class _RegistrationState extends State<Registration> {
         .createUserWithEmailAndPassword(
             email: user.email, password: user.password)
         .then(((firebaseUser) {
-      Navigator.push(
+      // save user data
+      FirebaseFirestore db = FirebaseFirestore.instance;
+      db.collection("Users").doc("001").set({"name": user.name, "email": user.email});
+      Navigator.pushReplacement(
           context, MaterialPageRoute(builder: ((context) => const Home())));
     })).catchError((error) {
       //print("error app:" + error.toString());
